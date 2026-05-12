@@ -6,6 +6,7 @@ __pycache__/
 # Virtual environments
 venv/
 .venv/
+env/
 
 # Django
 *.log
@@ -18,8 +19,23 @@ local_settings.py
 /db.sqlite3
 *.sqlite3
 /staticfiles/
+/media/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
 
 # IDEs
 .vscode/
+.idea/
 *.swp
+*.swo
+*.swn
 .DS_Store
+*.sublime-workspace
+
+# OS
+Thumbs.db
+.Spotlight-V100
+.Trashes
