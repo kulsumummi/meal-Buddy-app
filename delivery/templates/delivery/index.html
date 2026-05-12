@@ -1,14 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Welcome page</title>
+    <title>Welcome to Meal Buddy - Food Delivery</title>
+    {% load static %}
+
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<style>
+    .welcome-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 40px;
+        padding: 60px 20px;
+    }
+    
+    .welcome-content {
+        background: rgba(255,255,255,0.22);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 28px;
+        padding: 50px 40px;
+        box-shadow: 0 18px 48px rgba(0,0,0,0.14), 0 3px 12px rgba(0,0,0,0.06);
+        max-width: 500px;
+        text-align: center;
+    }
+    
+    .welcome-content h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #ff6b35 0%, #ff8656 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .welcome-content p {
+        font-size: 16px;
+        color: #2c2c2c;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+    
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .button-group a {
+        padding: 16px 32px;
+        font-size: 16px;
+        border-radius: 16px;
+        transition: 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    
+    .button-group a:first-child {
+        background: linear-gradient(135deg, #ff6b35 0%, #ff8656 100%);
+        box-shadow: 0 4px 15px rgba(255,107,53,0.3), 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .button-group a:first-child:hover {
+        box-shadow: 0 8px 25px rgba(255,107,53,0.45), 0 2px 5px rgba(0,0,0,0.15);
+    }
+    
+    .button-group a:last-child {
+        background: rgba(255,255,255,0.18);
+        border: 1.5px solid rgba(0,0,0,0.12);
+        color: #1f1f1f;
+    }
+    
+    .button-group a:last-child:hover {
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.3);
+    }
+</style>
 </head>
 <body>
-    <h3>Welcome to Meal Buddy!</h3>
-
-    <a href="open_signup">SIGN UP</a>
-    <br>
-    <a href="open_signin">SIGN IN</a>
+    <div class="welcome-container">
+        <div class="welcome-content">
+            <h1>🍔 Meal Buddy</h1>
+            <p>Discover delicious meals from your favorite restaurants, delivered fresh to your door</p>
+            <div class="button-group">
+                <a href="open_signup">Sign Up</a>
+                <a href="open_signin">Sign In</a>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

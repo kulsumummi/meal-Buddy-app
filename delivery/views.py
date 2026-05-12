@@ -1,7 +1,10 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 
-from .models import Customer, Restaurant, Item, Cart
+from .models import Customer, Restaurant, Item, Cart, CartItem
+from django.db.models import Q
+
+
 
 import razorpay
 from django.conf import settings
@@ -39,21 +42,51 @@ def signup(request):
 
 
 def signin(request):
+
     if request.method == 'POST':
+
         username = request.POST.get('username')
+
         password = request.POST.get('password')
 
-    try:
-        Customer.objects.get(username = username, password = password)
-        if username == 'admin':
-            return render(request, 'delivery/admin_home.html')
-        else:
-            restaurantList = Restaurant.objects.all()
-            return render(request, 'delivery/customer_home.html',{"restaurantList" : restaurantList, "username" : username})
+        try:
 
-    except Customer.DoesNotExist:
-        return render(request, 'delivery/fail.html')
-    
+            Customer.objects.get(
+                username=username,
+                password=password
+            )
+
+            if username == 'admin':
+
+                return render(
+                    request,
+                    'delivery/admin_home.html'
+                )
+
+            else:
+
+                restaurantList = Restaurant.objects.all()
+
+                return render(
+                    request,
+                    'delivery/customer_home.html',
+                    {
+                        "restaurantList": restaurantList,
+                        "username": username
+                    }
+                )
+
+        except Customer.DoesNotExist:
+
+            return render(
+                request,
+                'delivery/fail.html'
+            )
+
+    return render(
+        request,
+        'delivery/signin.html'
+    )
 def open_add_restaurant(request):
     return render(request, 'delivery/add_restaurant.html')
 
@@ -81,11 +114,13 @@ def open_show_restaurant(request):
     return render(request, 'delivery/show_restaurants.html',{"restaurantList" : restaurantList})
 
 def open_update_restaurant(request, restaurant_id):
-    restaurant = Restaurant.objects.get(id = restaurant_id)
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+#    restaurant = Restaurant.objects.get(id = restaurant_id)
     return render(request, 'delivery/update_restaurant.html', {"restaurant" : restaurant})
 
 def update_restaurant(request, restaurant_id):
-    restaurant = Restaurant.objects.get(id = restaurant_id)
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+#    restaurant = Restaurant.objects.get(id = restaurant_id)
     if request.method == 'POST':
         name = request.POST.get('name')
         picture = request.POST.get('picture')
@@ -104,7 +139,8 @@ def update_restaurant(request, restaurant_id):
 
 
 def delete_restaurant(request, restaurant_id):
-    restaurant = Restaurant.objects.get(id = restaurant_id)
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+#    restaurant = Restaurant.objects.get(id = restaurant_id)
     restaurant.delete()
 
     restaurantList = Restaurant.objects.all()
@@ -112,13 +148,14 @@ def delete_restaurant(request, restaurant_id):
 
 
 def open_update_menu(request, restaurant_id):
-    restaurant = Restaurant.objects.get(id = restaurant_id)
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+ #   restaurant = Restaurant.objects.get(id = restaurant_id)
     itemList = restaurant.items.all()
     #itemList = Item.objects.all()
     return render(request, 'delivery/update_menu.html',{"itemList" : itemList, "restaurant" : restaurant})
     
 def update_menu(request, restaurant_id):
-    restaurant = Restaurant.objects.get(id = restaurant_id)
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
     
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -142,24 +179,37 @@ def update_menu(request, restaurant_id):
     return render(request, 'delivery/admin_home.html')
 
 def view_menu(request, restaurant_id, username):
-    restaurant = Restaurant.objects.get(id = restaurant_id)
+#    restaurant = Restaurant.objects.get(id = restaurant_id)
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
     itemList = restaurant.items.all()
     #itemList = Item.objects.all()
     return render(request, 'delivery/customer_menu.html'
                   ,{"itemList" : itemList,
                      "restaurant" : restaurant, 
                      "username":username})
-
 def add_to_cart(request, item_id, username):
-    item = Item.objects.get(id = item_id)
-    customer = Customer.objects.get(username = username)
+    item = Item.objects.get(id=item_id)
+    customer = Customer.objects.get(username=username)
 
-    cart, created = Cart.objects.get_or_create(customer = customer)
+    cart, created = Cart.objects.get_or_create(customer=customer)
 
-    cart.items.add(item)
+    existing_cart_item = cart.items.filter(item=item).first()
 
-    return HttpResponse('added to cart')
+    if existing_cart_item:
+        existing_cart_item.quantity += 1
+        existing_cart_item.save()
+    else:
+        cart_item = CartItem.objects.create(
+            item=item,
+            quantity=1
+        )
+        cart.items.add(cart_item)
 
+    restaurant_id = item.restaurant.id
+
+    return redirect(f'/view_menu/{restaurant_id}/{username}?added=1')
+
+  
 def show_cart(request, username):
     customer = Customer.objects.get(username = username)
     cart = Cart.objects.filter(customer=customer).first()
@@ -222,3 +272,40 @@ def orders(request, username):
         'cart_items': cart_items,
         'total_price': total_price,
     })
+def increase_quantity(request, cart_item_id, username):
+
+    cart_item = CartItem.objects.get(id=cart_item_id)
+
+    cart_item.quantity += 1
+
+    cart_item.save()
+
+    return redirect('show_cart', username=username)
+
+
+
+def decrease_quantity(request, cart_item_id, username):
+
+    cart_item = CartItem.objects.get(id=cart_item_id)
+
+    if cart_item.quantity > 1:
+
+        cart_item.quantity -= 1
+
+        cart_item.save()
+
+    else:
+
+        cart_item.delete()
+
+    return redirect('show_cart', username=username)
+
+
+
+def remove_item(request, cart_item_id, username):
+
+    cart_item = CartItem.objects.get(id=cart_item_id)
+
+    cart_item.delete()
+
+    return redirect('show_cart', username=username)

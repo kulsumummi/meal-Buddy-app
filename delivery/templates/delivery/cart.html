@@ -3,37 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    Hi {{username}} here are you items
-    <!-- show current menu -->
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Item Image</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            {%  for item in itemList %}
-                <tr>
-                    <td>
-                        <img src="{{ item.picture }}">
-                    </td>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.description }}</td>
-                    <td>{{ item.price }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-        <h2>Total price : {{total_price}}</h2>
+    <title>Shopping Cart - Meal Buddy</title>
+
+    {% load static %}
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .cart-container {
+            max-width: 1000px;
+            margin: 40px auto;
+        }
         
-        <form action="{% url 'checkout' username %}">
-            <input type="submit" value="CHECK OUT" />
-        </form>
-    </table>
+        .cart-header {
+            margin-bottom: 40px;
+        }
+        
+        .cart-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .cart-table-wrapper {
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 28px;
+            padding: 35px;
+            box-shadow: 0 18px 48px rgba(0,0,0,0.14), 0 3px 12px rgba(0,0,0,0.06);
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        .cart-table-wrapper table {
+            width: 100%;
+            margin-top: 0;
+        }
+        
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .quantity-control a {
+            padding: 6px 12px;
+            font-size: 14px;
+            min-width: auto;
+        }
+        
+        .cart-footer {
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 28px;
+            padding: 35px;
+            box-shadow: 0 18px 48px rgba(0,0,0,0.14), 0 3px 12px rgba(0,0,0,0.06);
+        }
+        
+        .total-price-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 25px;
+        }
+        
+        .total-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #3a3a3a;
+        }
+        
+        .total-value {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8656 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .checkout-btn {
+            width: 100%;
+            padding: 16px 30px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8656 100%);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="cart-container">
+        
+        <div class="cart-header">
+            <h1>🛒 Your Cart</h1>
+            <p style="color: #2c2c2c; font-size: 15px;">Review your items before checkout</p>
+        </div>
+
+        <div class="cart-table-wrapper">
+            <table border="0">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Item</th>
+
+                        <th>Name</th>
+
+                        <th>Price</th>
+
+                        <th>Quantity</th>
+
+                        <th>Subtotal</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for cart_item in itemList %}
+
+                    <tr>
+
+                        <td style="text-align: center;">
+                            <img src="{{ cart_item.item.picture }}" width="80" style="border-radius: 12px;">
+                        </td>
+
+                        <td>
+                            <strong>{{ cart_item.item.name }}</strong>
+                        </td>
+
+                        <td style="color: #ffb347; font-weight: 700;">
+                            ₹{{ cart_item.item.price }}
+                        </td>
+
+                        <td>
+                            <div class="quantity-control">
+                                <a href="{% url 'decrease_quantity' cart_item.id username %}">−</a>
+                                <span style="min-width: 30px; text-align: center;">{{ cart_item.quantity }}</span>
+                                <a href="{% url 'increase_quantity' cart_item.id username %}">+</a>
+                            </div>
+                        </td>
+
+                        <td style="color: #ffb347; font-weight: 700;">
+                            ₹{{ cart_item.item.price|floatformat:2 }}
+                        </td>
+
+                        <td style="text-align: center;">
+                            <a href="{% url 'remove_item' cart_item.id username %}" style="padding: 8px 16px; font-size: 13px;">
+                                Remove
+                            </a>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="cart-footer">
+            <div class="total-price-section">
+                <span class="total-label">Total Amount</span>
+                <span class="total-value">₹{{total_price}}</span>
+            </div>
+
+            <form action="{% url 'checkout' username %}">
+                <input type="submit" value="Proceed to Checkout" class="checkout-btn" />
+            </form>
+        </div>
+        
+    </div>
+
 </body>
 </html>

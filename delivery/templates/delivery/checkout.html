@@ -3,59 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout</title>
+    <title>Checkout - Meal Buddy</title>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    {% load static %}
+
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<style>
+    .checkout-container {
+        max-width: 600px;
+        margin: 40px auto;
+    }
+    
+    .checkout-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .checkout-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .order-summary {
+        background: rgba(255,255,255,0.22);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 28px;
+        padding: 35px;
+        box-shadow: 0 18px 48px rgba(0,0,0,0.14), 0 3px 12px rgba(0,0,0,0.06);
+        margin-bottom: 20px;
+    }
+    
+    .order-summary table {
+        margin-top: 0;
+    }
+    
+    .order-summary th {
+        font-size: 14px;
+        padding: 15px;
+        text-transform: uppercase;
+    }
+    
+    .order-summary td {
+        padding: 15px;
+    }
+    
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        margin-top: 15px;
+    }
+    
+    .price-label {
+        color: #3a3a3a;
+        font-weight: 600;
+    }
+    
+    .price-value {
+        font-size: 18px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ff6b35 0%, #ff8656 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .total-price {
+        font-size: 24px;
+        font-weight: 800;
+    }
+    
+    .payment-button {
+        width: 100%;
+        padding: 18px 30px;
+        font-size: 17px;
+        margin-top: 0;
+        background: linear-gradient(135deg, #ff6b35 0%, #ff8656 100%);
+        box-shadow: 0 4px 15px rgba(255,107,53,0.3), 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .payment-button:hover {
+        box-shadow: 0 8px 25px rgba(255,107,53,0.45), 0 2px 5px rgba(0,0,0,0.15);
+    }
+    
+    .error-message {
+        color: #ff6666;
+        padding: 20px;
+        background: rgba(255,50,50,0.15);
+        border-radius: 16px;
+        margin-bottom: 20px;
+    }
+</style>
 </head>
 <body>
-    <h1>Checkout</h1>
-    <h2>Welcome, {{ username }}</h2>
+    <div class="checkout-container">
+        <div class="checkout-header">
+            <h1>Payment</h1>
+            <p style="color: #2c2c2c; font-size: 15px;">Complete your order securely</p>
+        </div>
 
-    {% if error %}
-    <p style="color: red;">{{ error }}</p>
-    {% else %}
+        {% if error %}
+            <div class="error-message">
+                <strong>Error:</strong> {{ error }}
+            </div>
+        {% else %}
 
+        <div class="order-summary">
+            <h2 style="margin-bottom: 20px; font-size: 1.3rem;">Order Summary</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Item</th>
+                        <th style="text-align: right;">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr>
+                        <td style="text-align: left;">{{ item.name }}</td>
+                        <td style="text-align: right; color: #ffb347;">₹{{ item.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="price-row total-price">
+                <span class="price-label">Total Amount</span>
+                <span class="price-value">₹{{ total_price }}</span>
+            </div>
+        </div>
 
-
-
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Item</th>
-                <th>Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in cart_items %}
-            <tr>
-                <td>{{ item.name }}</td>
-                <td>₹{{ item.price }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <h3>Total: ₹{{ total_price }}</h3>
-
-
-
-    
-
-    <button id="rzp-button">Pay with Razorpay</button>
-    {% endif %}
-
-
-    
+        <button id="rzp-button" class="payment-button">💳 Pay Now</button>
+        
+        {% endif %}
+    </div>
 
     <script>
         var options = {
-            "key": "{{ rzp_test_lT6VV3Hhr4ayCQ }}",  // Razorpay API key
-            "amount": "{{ total_price|floatformat:2|add:'0.00'|floatformat:2 }}00", // Amount in paisa
+            "key": "{{ rzp_test_lT6VV3Hhr4ayCQ }}",
+            "amount": "{{ total_price|floatformat:2|add:'0.00'|floatformat:2 }}00",
             "currency": "INR",
             "name": "Meal Buddy",
             "description": "Order Payment",
-            "order_id": "{{ order_id }}",  // Razorpay order ID
+            "order_id": "{{ order_id }}",
             "handler": function (response) {
                 alert("Payment Successful!");
-                // Redirect to the orders page
                 window.location.href = "{% url 'orders' username %}";
             },
             "prefill": {
@@ -64,7 +160,7 @@
                 "contact": "9999999999"
             },
             "theme": {
-                "color": "#528FF0"
+                "color": "#ff6b35"
             }
         };
         var rzp = new Razorpay(options);
